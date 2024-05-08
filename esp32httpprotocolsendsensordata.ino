@@ -1,4 +1,5 @@
 //EXAMPLE-1 in this we are using the arduinojson library for sending the pkt. this is our code and this is working also builtin led is turned on
+//isme humne do response send kiya hai. agar relay: openen and message:success but we will only read the relay. and if it is OPENEN then turn on the relay
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -76,8 +77,11 @@ void HTTPS_POST(String HTTPS_POST_URL, String PostPacket)
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_CREATED) {
         String ServerResponse = http.getString();
         Serial.println("ServerResponse: " + ServerResponse);
-        // Check if the response contains "success" and turn on the LED
-        if (ServerResponse.indexOf("success") != -1) {
+        // Parse the JSON response
+        StaticJsonDocument<200> jsonResponse;
+        deserializeJson(jsonResponse, ServerResponse);
+        // Check if the relay is "OPENEN" and turn on the LED
+        if (jsonResponse["relay"] == "OPENEN") {
           digitalWrite(LED_PIN, HIGH); // Turn on the LED
           delay(1000); // Wait for 1 second
           digitalWrite(LED_PIN, LOW); // Turn off the LED
@@ -115,6 +119,7 @@ void HTTPS_GET(String HTTPS_GET_URL)
   }
   http.end();
 }
+
 
 /*
 // EXAMPLE-2 ye code bhi humara work kar rha hai is code me humne arduinojson library ka use nahi kiya hai. aur apne se packet banaya hai jaise hum postman se send karte hai waise.
