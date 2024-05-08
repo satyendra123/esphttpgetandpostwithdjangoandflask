@@ -1,5 +1,5 @@
 # esphttpgetandpostwithdjangoandflask
-actually i want to send the sensor data by http post method and flask as a server and i am getting the data
+actually i want to send the sensor data by http post method and flask as a server and i am getting the data. my esp32 and the mylaptop are connected with the same wifi so both are in same network. and my esp32 ip is 192.168.1.35 and my pc ip is for wifi is 192.168.1.16. so in my arduino code i will send the post data to this ip only.
 
 #include <WiFi.h>
 #include <HTTPClient.h>
