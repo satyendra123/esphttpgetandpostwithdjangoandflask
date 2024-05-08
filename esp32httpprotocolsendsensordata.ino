@@ -313,7 +313,6 @@ void loop() {
   }
 }
 */
-*/
 
 // this is my flask code which receives the data
 '''
