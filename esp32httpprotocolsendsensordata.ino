@@ -1,3 +1,123 @@
+//EXAMPLE-1 in this we are using the arduinojson library for sending the pkt. this is our code and this is working also builtin led is turned on
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+WiFiClient client;
+HTTPClient http;
+
+String device_id = "Device0001";
+String ssid = "Airtel_tejv_3002";
+String password = "air73137";
+
+float DHT_Temperature = 22.4;
+float DHT_Humidity = 34;
+
+String HTTPS_POST_URL = "http://192.168.1.16:1880/update-sensor/";
+String HTTPS_GET_URL = "http://192.168.1.16:1880/get-sensor/";
+
+const int LED_PIN = 2; // GPIO 2 for the built-in LED
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+  setup_wifi();
+}
+
+void loop() {
+
+  // Create JSON object for temperature data
+  StaticJsonDocument<200> jsonTemperature;
+  jsonTemperature["device_id"] = device_id;
+  jsonTemperature["type"] = "Temperature";
+  jsonTemperature["value"] = DHT_Temperature;
+
+  // Serialize JSON object to a String
+  String pkt;
+  serializeJson(jsonTemperature, pkt);
+
+  HTTPS_POST(HTTPS_POST_URL, pkt);
+
+  // Create JSON object for humidity data
+  StaticJsonDocument<200> jsonHumidity;
+  jsonHumidity["device_id"] = device_id;
+  jsonHumidity["type"] = "Humidity";
+  jsonHumidity["value"] = DHT_Humidity;
+
+  // Serialize JSON object to a String
+  String pkt2;
+  serializeJson(jsonHumidity, pkt2);
+
+  HTTPS_POST(HTTPS_POST_URL, pkt2);
+
+  HTTPS_GET(HTTPS_GET_URL);
+
+  delay(1000);
+}
+
+void setup_wifi() {
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+}
+
+void HTTPS_POST(String HTTPS_POST_URL, String PostPacket) 
+{
+  Serial.println("\nPosting to: " + HTTPS_POST_URL);
+  Serial.println("PostPacket: " + PostPacket);
+
+  Serial.println("Connecting to server..");
+  if (http.begin(client, HTTPS_POST_URL)) {
+    http.addHeader("Content-Type", "application/json");
+    int httpCode = http.POST(PostPacket);
+    if (httpCode > 0) {
+      Serial.println("httpCode: " + String(httpCode));
+      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_CREATED) {
+        String ServerResponse = http.getString();
+        Serial.println("ServerResponse: " + ServerResponse);
+        // Check if the response contains "success" and turn on the LED
+        if (ServerResponse.indexOf("success") != -1) {
+          digitalWrite(LED_PIN, HIGH); // Turn on the LED
+          delay(1000); // Wait for 1 second
+          digitalWrite(LED_PIN, LOW); // Turn off the LED
+        }
+      }
+    } else {
+      Serial.print("Failed to POST. Error: ");
+      Serial.println(http.errorToString(httpCode).c_str());
+    }
+  } else {
+    Serial.print("Failed to connect to server");
+  }
+  http.end();
+}
+
+void HTTPS_GET(String HTTPS_GET_URL) 
+{
+  Serial.println("\nGetting from: " + HTTPS_GET_URL);
+
+  Serial.println("Connecting to server..");
+  if (http.begin(client, HTTPS_GET_URL)) {
+    int httpCode = http.GET();
+    if (httpCode > 0) {
+      Serial.println("httpCode: " + String(httpCode));
+      if (httpCode == HTTP_CODE_OK) {
+        String ServerResponse = http.getString();
+        Serial.println("\nServerResponse: " + ServerResponse);
+      }
+    } else {
+      Serial.print("Failed to GET. Error: ");
+      Serial.println(http.errorToString(httpCode).c_str());
+    }
+  } else {
+    Serial.print("Failed to connect to server");
+  }
+  http.end();
+}
+
+/*
+// EXAMPLE-2 ye code bhi humara work kar rha hai is code me humne arduinojson library ka use nahi kiya hai. aur apne se packet banaya hai jaise hum postman se send karte hai waise.
 #include <WiFi.h>
 #include <HTTPClient.h>
 
@@ -14,8 +134,11 @@ float DHT_Humidity = 34;
 String HTTPS_POST_URL = "http://192.168.1.16:1880/update-sensor/";
 String HTTPS_GET_URL = "http://192.168.1.16:1880/get-sensor/";
 
+const int LED_PIN = 2; // GPIO 2 for the built-in LED
+
 void setup() {
   Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
   setup_wifi();
 }
 
@@ -61,6 +184,12 @@ void HTTPS_POST(String HTTPS_POST_URL, String PostPacket)
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_CREATED) {
         String ServerResponse = http.getString();
         Serial.println("ServerResponse: " + ServerResponse);
+        // Check if the response contains "success" and turn on the LED
+        if (ServerResponse.indexOf("success") != -1) {
+          digitalWrite(LED_PIN, HIGH); // Turn on the LED
+          delay(1000); // Wait for 1 second
+          digitalWrite(LED_PIN, LOW); // Turn off the LED
+        }
       }
     } else {
       Serial.print("Failed to POST. Error: ");
@@ -95,8 +224,7 @@ void HTTPS_GET(String HTTPS_GET_URL)
   http.end();
 }
 
-
-
+*/
 /*
   Rui Santos
   Complete project details at Complete project details at https://RandomNerdTutorials.com/esp32-http-get-post-arduino/
@@ -184,6 +312,7 @@ void loop() {
     lastTime = millis();
   }
 }
+*/
 */
 
 // this is my flask code which receives the data
