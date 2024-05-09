@@ -90,10 +90,90 @@ setup()
 while True:
     loop()
 
+# this is the code for the raspberry pi with same working process
+import RPi.GPIO as GPIO
+import time
+import requests
+import json
 
+device_id = "Device0001"
+ssid = "Airtel_tejv_3002"
+password = "air73137"
 
+DHT_Temperature = 22.4
+DHT_Humidity = 34
 
+HTTPS_POST_URL = "http://192.168.1.16:1880/update-sensor/"
+HTTPS_GET_URL = "http://192.168.1.16:1880/get-sensor/"
 
+LED_PIN = 2 # GPIO 2 for the built-in LED
+
+def setup():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(LED_PIN, GPIO.OUT)
+    setup_wifi()
+
+def loop():
+    jsonTemperature = {
+        "device_id": device_id,
+        "type": "Temperature",
+        "value": DHT_Temperature
+    }
+
+    HTTPS_POST(HTTPS_POST_URL, jsonTemperature)
+
+    jsonHumidity = {
+        "device_id": device_id,
+        "type": "Humidity",
+        "value": DHT_Humidity
+    }
+
+    HTTPS_POST(HTTPS_POST_URL, jsonHumidity)
+
+    HTTPS_GET(HTTPS_GET_URL)
+
+    time.sleep(1)
+
+def setup_wifi():
+    # You'll need to implement WiFi setup for Raspberry Pi.
+    # This can be done using the `wifi` or `wpa_supplicant` libraries in Python.
+    pass
+
+def HTTPS_POST(HTTPS_POST_URL, data):
+    print("\nPosting to:", HTTPS_POST_URL)
+    print("PostPacket:", data)
+
+    print("Connecting to server...")
+    try:
+        response = requests.post(HTTPS_POST_URL, json=data)
+        if response.status_code == 200:
+            print("ServerResponse:", response.text)
+            jsonResponse = response.json()
+            if jsonResponse.get("relay") == "OPENEN":
+                GPIO.output(LED_PIN, GPIO.HIGH)
+                time.sleep(1)
+                GPIO.output(LED_PIN, GPIO.LOW)
+        else:
+            print("Failed to POST. Error:", response.text)
+    except Exception as e:
+        print("Exception occurred:", e)
+
+def HTTPS_GET(HTTPS_GET_URL):
+    print("\nGetting from:", HTTPS_GET_URL)
+
+    print("Connecting to server...")
+    try:
+        response = requests.get(HTTPS_GET_URL)
+        if response.status_code == 200:
+            print("ServerResponse:", response.text)
+        else:
+            print("Failed to GET. Error:", response.text)
+    except Exception as e:
+        print("Exception occurred:", e)
+
+setup()
+while True:
+    loop()
 
 //EXAMPLE-1 in this we are using the arduinojson library for sending the pkt. this is our code and this is working also builtin led is turned on
 //isme humne do response send kiya hai. agar relay: openen and message:success but we will only read the relay. and if it is OPENEN then turn on the relay
