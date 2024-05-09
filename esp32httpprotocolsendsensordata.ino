@@ -1,4 +1,4 @@
-// this is the working code for http post request in esp32
+// this is the working code for http post request in esp32 in micropython. and this code is in working condition. it sends the back the response in json format. and when relay: OPENEN is getting in the response the builtin led will be turned on
 from machine import Pin
 from time import sleep
 import network
